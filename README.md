@@ -76,26 +76,7 @@ photoFactory.FactoryFinish(requestCode,resultCode,data)
 	...
 </application>
 ```
-**4. 在AndroidManifest.xml中添加相应权限及配置Provider**
-```
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-<application
-	android:icon="@mipmap/ic_launcher"
-	...
-	>
-	<provider
-		android:name="android.support.v4.content.FileProvider"
-		android:authorities="${applicationId}.provider"
-		android:exported="false"
-		android:grantUriPermissions="true">
-		<meta-data
-			android:name="android.support.FILE_PROVIDER_PATHS"
-			android:resource="@xml/provider_paths" />
-	</provider>
-	...
-</application>
-```
-**5. 在Activity中进行动态权限管理以及使用PhotoFactory**
+**4. 在Activity中进行动态权限管理以及使用PhotoFactory**
 ```java
 public class PhotoTestActivity extends AppCompatActivity {
     private Button btnPhoto;
