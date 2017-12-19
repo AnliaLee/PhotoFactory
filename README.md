@@ -129,8 +129,13 @@ public class PhotoTestActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == RESULT_CANCELED){
-            Toast.makeText(this, "取消", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "取消拍照！", Toast.LENGTH_SHORT).show();
         }else {
+            if(data == null){
+                Toast.makeText(this, "取消选择！", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            //使用你选取的照片
             Uri uri = photoFactory.FactoryFinish(requestCode,resultCode,data).GetUri();
             imgPhoto.setImageURI(uri);
         }
