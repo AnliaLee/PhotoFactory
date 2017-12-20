@@ -105,15 +105,35 @@ public class PhotoFactory {
         }
     }
 
-
+    public static final int CODE_HAS_DATA = 200;
+    public static final int CODE_TAKE_PHOTO_CANCELED = 201;
+    public static final int CODE_GALLERY_CANCELED = 202;
 
     public FinishBuilder FactoryFinish(int requestCode, int resultCode, Intent data){
         if(requestCode == TYPE_PHOTO_FROM_GALLERY){
-            mUri = data.getData();
+            if(data == null){
+                return new FinishBuilder(requestCode,resultCode,data, CODE_GALLERY_CANCELED);
+            }else {
+                mUri = data.getData();
+                return new FinishBuilder(requestCode,resultCode,data, CODE_HAS_DATA);
+            }
         }else if(requestCode == TYPE_PHOTO_UNTREATED){
-            ShowPhotoInGallery();
+            File photo = new File(photoPath,photoName);
+            if(!photo.exists()){
+                return new FinishBuilder(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
+            }else {
+                ShowPhotoInGallery();
+                return new FinishBuilder(requestCode,resultCode,data, CODE_HAS_DATA);
+            }
+        }else if(requestCode == TYPE_PHOTO_AUTO_COMPRESS){
+            if(data == null){
+                return new FinishBuilder(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
+            }else {
+                return new FinishBuilder(requestCode,resultCode,data, CODE_HAS_DATA);
+            }
+        }else {
+            return new FinishBuilder(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
         }
-        return new FinishBuilder(requestCode,resultCode,data);
     }
 
     public class FinishBuilder {
@@ -122,11 +142,25 @@ public class PhotoFactory {
         private Intent data;
         private Bitmap bitmap = null;
         private boolean isCompress = false;
+        private int cancelCode;
+        private OnResultListener mOnResultListener;
 
-        public FinishBuilder(int requestCode, int resultCode, Intent data){
+        public FinishBuilder(int requestCode, int resultCode, Intent data, int cancelCode){
             this.requestCode = requestCode;
             this.resultCode = resultCode;
             this.data = data;
+            this.cancelCode = cancelCode;
+        }
+
+        public void setOnResultListener(OnResultListener mOnResultListener){
+            this.mOnResultListener = mOnResultListener;
+            if(cancelCode == CODE_HAS_DATA){
+                this.mOnResultListener.HasData(this);
+            }else if(cancelCode == CODE_TAKE_PHOTO_CANCELED){
+                this.mOnResultListener.TakePhotoCancel();
+            }else if(cancelCode == CODE_GALLERY_CANCELED){
+                this.mOnResultListener.GalleryPhotoCancel();
+            }
         }
 
         /**
@@ -238,5 +272,11 @@ public class PhotoFactory {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         mediaScanIntent.setData(mUri);
         mActivity.sendBroadcast(mediaScanIntent);
+    }
+
+    public interface OnResultListener {
+        void TakePhotoCancel();
+        void GalleryPhotoCancel();
+        void HasData(FinishBuilder resultData);
     }
 }
