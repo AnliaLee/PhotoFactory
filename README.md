@@ -128,50 +128,30 @@ public class PhotoTestActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == RESULT_CANCELED){
-            Toast.makeText(this, "取消拍照！", Toast.LENGTH_SHORT).show();
-        }else {
-            if(data == null){
-                Toast.makeText(this, "取消选择！", Toast.LENGTH_SHORT).show();
-                return;
+        //可以这样去获取相片，但需要你自己去写取消选择的处理
+        Uri uri = photoFactory.FactoryFinish(requestCode,resultCode,data).GetUri();
+        imgPhoto.setImageURI(uri);
+
+        //也这样调用setOnResultListener一步到位了
+        photoFactory.FactoryFinish(requestCode,resultCode,data)
+                    .setOnResultListener(new PhotoFactory.OnResultListener() {
+            @Override
+            public void TakePhotoCancel() {
+                Toast.makeText(PhotoTestActivity.this, "取消拍照", Toast.LENGTH_SHORT).show();
             }
-            //使用你选取的照片
-            Uri uri = photoFactory.FactoryFinish(requestCode,resultCode,data).GetUri();
-            imgPhoto.setImageURI(uri);
-        }
+
+            @Override
+            public void GalleryPhotoCancel() {
+                Toast.makeText(PhotoTestActivity.this, "取消选择", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void HasData(PhotoFactory.FinishBuilder resultData) {//正确选取了相片
+                Uri uri = resultData.GetUri();
+                imgPhoto.setImageURI(uri);
+            }
+        });
         super.onActivityResult(requestCode, resultCode, data);
     }
-}
-```
-***
-### 更新
-之前的代码虽然简化了选取照片的过程，但没有考虑到把**取消选择的处理**也封装进来，用户还得在**onActivityResult**中写一堆代码去**处理取消选择的情况**，这说明**PhotoFactory**用起来还不够方便，于是我动手**增加了判断取消选择的接口**，现在我们可以调用这些新的接口进行容错了
-```java
-@Override
-protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-	//依然可以这样去获取相片，但需要你自己去写取消选择的处理
-	Uri uri = photoFactory.FactoryFinish(requestCode,resultCode,data).GetUri();
-	imgPhoto.setImageURI(uri);
-
-	//现在只要这样调用setOnResultListener就可以一步到位了
-	photoFactory.FactoryFinish(requestCode,resultCode,data)
-				.setOnResultListener(new PhotoFactory.OnResultListener() {
-		@Override
-		public void TakePhotoCancel() {
-			Toast.makeText(PhotoTestActivity.this, "取消拍照", Toast.LENGTH_SHORT).show();
-		}
-
-		@Override
-		public void GalleryPhotoCancel() {
-			Toast.makeText(PhotoTestActivity.this, "取消选择", Toast.LENGTH_SHORT).show();
-		}
-
-		@Override
-		public void HasData(PhotoFactory.FinishBuilder resultData) {//正确选取了相片
-			Uri uri = resultData.GetUri();
-			imgPhoto.setImageURI(uri);
-		}
-	});
-	super.onActivityResult(requestCode, resultCode, data);
 }
 ```
