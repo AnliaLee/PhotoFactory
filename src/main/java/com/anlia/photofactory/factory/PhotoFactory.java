@@ -7,12 +7,18 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.LoaderManager;
 
+import com.anlia.photofactory.mvp.InterfaceManager;
+import com.anlia.photofactory.mvp.model.SearchPhotoModelImpl;
+import com.anlia.photofactory.mvp.presenter.SearchPhotoPresenterImpl;
 import com.anlia.photofactory.utils.CompressUtils;
 import com.anlia.photofactory.utils.SystemUtils;
 import com.anlia.photofactory.utils.UriUtils;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by anlia on 2017/12/18.
@@ -222,9 +228,16 @@ public class PhotoFactory {
         }
 
         public Bitmap GetBitmap(){
+            if(cancelCode != CODE_HAS_DATA){
+                return null;
+            }
             switch (requestCode){
                 case TYPE_PHOTO_AUTO_COMPRESS:
-                    bitmap = data.getParcelableExtra("data");
+                    try{
+                        bitmap = data.getParcelableExtra("data");
+                    }catch (NullPointerException e){
+                        e.printStackTrace();
+                    }
                     break;
                 case TYPE_PHOTO_UNTREATED:
                 case TYPE_PHOTO_FROM_GALLERY:
@@ -249,10 +262,17 @@ public class PhotoFactory {
         }
 
         public Uri GetUri(){
+            if(cancelCode != CODE_HAS_DATA){
+                return null;
+            }
             switch (requestCode){
                 case TYPE_PHOTO_AUTO_COMPRESS:
-                    bitmap = data.getParcelableExtra("data");
-                    mUri = Uri.parse(MediaStore.Images.Media.insertImage(mActivity.getContentResolver(), bitmap, null,null));
+                    try{
+                        bitmap = data.getParcelableExtra("data");
+                        mUri = Uri.parse(MediaStore.Images.Media.insertImage(mActivity.getContentResolver(), bitmap, null,null));
+                    }catch (NullPointerException e){
+                        e.printStackTrace();
+                    }
                     break;
                 case TYPE_PHOTO_UNTREATED:
                 case TYPE_PHOTO_FROM_GALLERY:
@@ -278,5 +298,97 @@ public class PhotoFactory {
         void TakePhotoCancel();
         void GalleryPhotoCancel();
         void HasData(FinishBuilder resultData);
+    }
+
+
+    /**
+     * 初始化图片搜索Builder
+     * @param loaderManager
+     * @param applicationContext
+     * @param projection 加载数据的映射（MediaStore.Images.Media.DATA等）
+     * @return
+     */
+    public SearchBuilder FactorySearch(LoaderManager loaderManager,Context applicationContext,String[] projection){
+        Map<String,Object> map = new HashMap<>();
+        map.put("lm",loaderManager);
+        map.put("ac",applicationContext);
+        map.put("isQueryByFormat",false);
+        map.put("selections",new String[]{""});
+        map.put("projection",projection);
+        return new SearchBuilder(map);
+    }
+
+    public class SearchBuilder{
+        SearchPhotoPresenterImpl presenter;
+        Map<String,Object> map;
+        InterfaceManager.LoadingCallBack loadingCallBack;
+        InterfaceManager.SearchDataCallBack dataCallBack;
+        InterfaceManager.ErrorCallBack errorCallBack;
+
+        public SearchBuilder(Map<String,Object> map){
+            this.map = map;
+        }
+
+        /**
+         * 设置查询条件（模糊匹配图片路径或名称）
+         * @param selections
+         * @return
+         */
+        public SearchBuilder setSelection(String[] selections){
+            map.put("isQueryByFormat",false);
+            map.put("selections",selections);
+            return this;
+        }
+
+        /**
+         * 设置查询条件（匹配指定图片格式）
+         * @param selections
+         * @return
+         */
+        public SearchBuilder setSelectionByFormat(String[] selections){
+            map.put("isQueryByFormat",true);
+            map.put("selections",selections);
+            return this;
+        }
+
+        /**
+         * 设置数据加载中的回调
+         * ps:由于图片查询速度太快了，几乎看不到loading，聊胜于无吧233
+         * @param callBack
+         * @return
+         */
+        public SearchBuilder setLoadingEvent(InterfaceManager.LoadingCallBack callBack){
+            loadingCallBack = callBack;
+            return this;
+        }
+
+        /**
+         * 设置报错信息的回调
+         * @param callBack
+         * @return
+         */
+        public SearchBuilder setErrorEvent(InterfaceManager.ErrorCallBack callBack){
+            errorCallBack = callBack;
+            return this;
+        }
+
+        /**
+         * 执行搜索
+         * @param callBack
+         */
+        public void execute(InterfaceManager.SearchDataCallBack callBack){
+            dataCallBack = callBack;
+
+            if(loadingCallBack ==null && errorCallBack == null){
+                presenter = new SearchPhotoPresenterImpl(new SearchPhotoModelImpl(),callBack);
+            }else if(loadingCallBack ==null){
+                presenter = new SearchPhotoPresenterImpl(new SearchPhotoModelImpl(),callBack,errorCallBack);
+            }else if(errorCallBack == null){
+                presenter = new SearchPhotoPresenterImpl(new SearchPhotoModelImpl(),callBack,loadingCallBack);
+            }else {
+                presenter = new SearchPhotoPresenterImpl(new SearchPhotoModelImpl(),callBack,loadingCallBack,errorCallBack);
+            }
+            presenter.getData(map);
+        }
     }
 }
