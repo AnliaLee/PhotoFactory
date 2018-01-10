@@ -17,6 +17,10 @@ dependencies {
 }
 
 ```
+### 配置权限
+```
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+```
 ***
 ### 如何使用
 
