@@ -115,34 +115,34 @@ public class PhotoFactory {
     public static final int CODE_TAKE_PHOTO_CANCELED = 201;
     public static final int CODE_GALLERY_CANCELED = 202;
 
-    public FinishBuilder FactoryFinish(int requestCode, int resultCode, Intent data){
+    public ResultData FactoryFinish(int requestCode, int resultCode, Intent data){
         if(requestCode == TYPE_PHOTO_FROM_GALLERY){
             if(data == null){
-                return new FinishBuilder(requestCode,resultCode,data, CODE_GALLERY_CANCELED);
+                return new ResultData(requestCode,resultCode,data, CODE_GALLERY_CANCELED);
             }else {
                 mUri = data.getData();
-                return new FinishBuilder(requestCode,resultCode,data, CODE_HAS_DATA);
+                return new ResultData(requestCode,resultCode,data, CODE_HAS_DATA);
             }
         }else if(requestCode == TYPE_PHOTO_UNTREATED){
             File photo = new File(photoPath,photoName);
             if(!photo.exists()){
-                return new FinishBuilder(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
+                return new ResultData(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
             }else {
                 ShowPhotoInGallery();
-                return new FinishBuilder(requestCode,resultCode,data, CODE_HAS_DATA);
+                return new ResultData(requestCode,resultCode,data, CODE_HAS_DATA);
             }
         }else if(requestCode == TYPE_PHOTO_AUTO_COMPRESS){
             if(data == null){
-                return new FinishBuilder(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
+                return new ResultData(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
             }else {
-                return new FinishBuilder(requestCode,resultCode,data, CODE_HAS_DATA);
+                return new ResultData(requestCode,resultCode,data, CODE_HAS_DATA);
             }
         }else {
-            return new FinishBuilder(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
+            return new ResultData(requestCode,resultCode,data, CODE_TAKE_PHOTO_CANCELED);
         }
     }
 
-    public class FinishBuilder {
+    public class ResultData {
         private int requestCode;
         private int resultCode;
         private Intent data;
@@ -151,7 +151,7 @@ public class PhotoFactory {
         private int cancelCode;
         private OnResultListener mOnResultListener;
 
-        public FinishBuilder(int requestCode, int resultCode, Intent data, int cancelCode){
+        public ResultData(int requestCode, int resultCode, Intent data, int cancelCode){
             this.requestCode = requestCode;
             this.resultCode = resultCode;
             this.data = data;
@@ -175,7 +175,7 @@ public class PhotoFactory {
          * @param h
          * @return
          */
-        public FinishBuilder addScaleCompress(int w, int h){
+        public ResultData addScaleCompress(int w, int h){
             if(isCompress){
                 bitmap = CompressUtils.ScaleCompressFormBitmap(bitmap,w,h);
             }else {
@@ -194,7 +194,7 @@ public class PhotoFactory {
          * @param scale 压缩比
          * @return
          */
-        public FinishBuilder addScaleCompress(int scale){
+        public ResultData addScaleCompress(int scale){
             if(isCompress){
                 bitmap = CompressUtils.ScaleCompressFormBitmap(bitmap,scale);
             }else {
@@ -213,7 +213,7 @@ public class PhotoFactory {
          * @param targetSize 目标大小
          * @return
          */
-        public FinishBuilder addQualityCompress(int targetSize){
+        public ResultData addQualityCompress(int targetSize){
             if(isCompress){
                 bitmap = CompressUtils.QualityCompressFromBitmap(bitmap,targetSize);
             }else {
@@ -297,7 +297,7 @@ public class PhotoFactory {
     public interface OnResultListener {
         void TakePhotoCancel();
         void GalleryPhotoCancel();
-        void HasData(FinishBuilder resultData);
+        void HasData(ResultData resultData);
     }
 
 
