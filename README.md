@@ -230,6 +230,8 @@ photoFactory.FactorySearch(getSupportLoaderManager(),getApplicationContext(),pro
 				public void onFinish(final List<Map<String, Object>> list) {
 					searchGifAdapter = new SearchGifAdapter(SearchGifActivity.this,list);
 					recyclerView.setAdapter(searchGifAdapter);
+					
+					//通过你之前设置的映射获取数据，例如：list.get(position).get(MediaStore.Images.Media.DATA)
 				}
 			});
 ```
