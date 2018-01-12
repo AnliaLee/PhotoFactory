@@ -1,5 +1,6 @@
 # PhotoFactory
 
+[![](https://jitpack.io/v/AnliaLee/PhotoFactory.svg)](https://jitpack.io/#AnliaLee/PhotoFactory)
 [![GitHub release](https://img.shields.io/github/release/AnliaLee/PhotoFactory.svg)](https://github.com/AnliaLee/PhotoFactory/releases)
 [![GitHub license](https://img.shields.io/github/license/AnliaLee/PhotoFactory.svg)](https://github.com/AnliaLee/PhotoFactory/blob/master/LICENSE)
 
