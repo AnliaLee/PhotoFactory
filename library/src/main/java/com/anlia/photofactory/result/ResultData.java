@@ -10,6 +10,8 @@ import android.provider.MediaStore;
 import com.anlia.photofactory.factory.PhotoFactory;
 import com.anlia.photofactory.utils.CompressUtils;
 
+import java.io.IOException;
+
 /**
  * Created by anlia on 2018/5/16.
  */
@@ -46,48 +48,25 @@ public class ResultData {
 
     /**
      * 按目标宽高缩放
-     * @see #addScaleCompress(int, int, boolean)
-     */
-    public ResultData addScaleCompress(int w, int h){
-        return addScaleCompress(w,h,false);
-    }
-
-    /**
-     * 按目标宽高缩放
      * @param w
      * @param h
-     * @param isAccurate 是否精确压缩至新的尺寸
      * @return
      */
-    public ResultData addScaleCompress(int w, int h, boolean isAccurate){
-        if(isCompress){
-            bitmap = CompressUtils.ScaleCompressFormBitmap(bitmap,w,h,isAccurate);
-        }else {
-            try {
+    public ResultData addScaleCompress(int w, int h){
+        try {
+            if(isCompress){
+                bitmap = CompressUtils.ScaleCompressFormBitmap(mActivity,bitmap,w,h);
+            }else {
                 isCompress = true;
-                bitmap = CompressUtils.ScaleCompressFormUri(mActivity,mUri,h,w,isAccurate);
-            }catch (Exception e){
-                e.printStackTrace();
+                bitmap = CompressUtils.ScaleCompressFormUri(mActivity,mUri,h,w);
             }
+        }catch (Exception e){
+            e.printStackTrace();
+            mCancelCode = PhotoFactory.CODE_CANCELED;
         }
-        return this;
-    }
 
-    /**
-     * 等比例缩放
-     * @param scale 压缩比
-     * @return
-     */
-    public ResultData addScaleCompress(int scale){
-        if(isCompress){
-            bitmap = CompressUtils.ScaleCompressFormBitmap(bitmap,scale);
-        }else {
-            try {
-                isCompress = true;
-                bitmap = CompressUtils.ScaleCompressFormUri(mActivity,mUri,scale);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+        if (bitmap == null){//进行一次校验，防止特殊机型从相册获取图片点击取消时返回的状态不为CANCELED
+            mCancelCode = PhotoFactory.CODE_CANCELED;
         }
         return this;
     }
@@ -98,15 +77,20 @@ public class ResultData {
      * @return
      */
     public ResultData addQualityCompress(int targetSize){
-        if(isCompress){
-            bitmap = CompressUtils.QualityCompressFromBitmap(bitmap,targetSize);
-        }else {
-            try {
+        try {
+            if(isCompress){
+                bitmap = CompressUtils.QualityCompressFromBitmap(bitmap,targetSize);
+            }else {
                 isCompress = true;
                 bitmap = CompressUtils.QualityCompressFromUri(mActivity,mUri,targetSize);
-            }catch (Exception e){
-
             }
+        }catch (Exception e){
+            e.printStackTrace();
+            mCancelCode = PhotoFactory.CODE_CANCELED;
+        }
+
+        if (bitmap == null){//进行一次校验，防止特殊机型从相册获取图片点击取消时返回的状态不为CANCELED
+            mCancelCode = PhotoFactory.CODE_CANCELED;
         }
         return this;
     }

@@ -1,13 +1,17 @@
 package com.anlia.photofactory.utils;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.provider.MediaStore;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -16,6 +20,26 @@ import java.io.InputStream;
  */
 
 public class CompressUtils {
+    private static int calculateNewBitmapSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // 原始图片的宽高
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+            // 在保证解析出的bitmap宽高分别大于目标尺寸宽高的前提下，取可能的inSampleSize的最大值
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        if (height == 0 || width == 0) inSampleSize = 5;
+        return inSampleSize;
+    }
+
     /**
      * 按目标宽高缩放
      * @param activity
@@ -25,83 +49,54 @@ public class CompressUtils {
      * @return
      * @throws IOException
      */
-    public static Bitmap ScaleCompressFormUri(Activity activity,Uri uri,float newW,float newH,boolean isAccurate) throws IOException {
-        InputStream input = activity.getContentResolver().openInputStream(uri);
-        Bitmap bitmap = BitmapFactory.decodeStream(input);
-        input.close();
-        return ScaleCompressFormBitmap(bitmap,newW,newH,isAccurate);
-    }
+    public static Bitmap ScaleCompressFormUri(Activity activity,Uri uri,float newW,float newH) throws IOException {
+        Bitmap bitmap = null;
+        // 首先设置 inJustDecodeBounds=true 来获取图片尺寸
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        try {
+            BitmapFactory.decodeStream(activity.getContentResolver().openInputStream(uri), null, options);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-    /**
-     * 按目标宽高缩放
-     * @param bitmap 目标bitmap
-     * @param newW 目标宽度
-     * @param newH 目标高度
-     * @param isAccurate 是否精确压缩至新的尺寸
-     * @return
-     */
-    public static Bitmap ScaleCompressFormBitmap(Bitmap bitmap, float newW, float newH, boolean isAccurate) {
-        float oldW = bitmap.getWidth();
-        float oldH = bitmap.getHeight();
-        float scaleWidth;
-        float scaleHeight;
+        AssetFileDescriptor fileDescriptor = null;
+        try {
+            // 计算 inSampleSize 的值
+            options.inSampleSize = calculateNewBitmapSize(options,(int) newW,(int) newH);
 
-        if(isAccurate){
-            scaleWidth = newW / oldW;
-            scaleHeight = newH / oldH;
-            Matrix matrix = new Matrix();
-            matrix.postScale(scaleWidth, scaleHeight);
-            bitmap = Bitmap.createBitmap(bitmap, 0, 0, (int) oldW, (int) oldH, matrix, true);
-        }else {
-            //压缩至目标宽高以下
-            while (oldW > newW || oldH > newH) {
-                scaleWidth = ((oldW / 2)) / oldW;
-                scaleHeight = ((oldH / 2)) / oldH;
-                Matrix matrix = new Matrix();
-                matrix.postScale(scaleWidth, scaleHeight);
-                bitmap = Bitmap.createBitmap(bitmap, 0, 0, (int) oldW, (int) oldH, matrix, true);
-                oldW = bitmap.getWidth();
-                oldH = bitmap.getHeight();
+            // 根据计算出的 inSampleSize 来解码图片生成Bitmap
+            options.inJustDecodeBounds = false;
+            fileDescriptor = activity.getContentResolver().openAssetFileDescriptor(uri, "r");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                bitmap = BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
+                fileDescriptor.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
             }
         }
         return bitmap;
     }
 
     /**
-     * 等比例缩放
+     * 按目标宽高缩放
      * @param activity
-     * @param uri
-     * @param scale 缩放比例
+     * @param bitmap 目标bitmap
+     * @param newW 目标宽度
+     * @param newH 目标高度
      * @return
      * @throws IOException
      */
-    public static Bitmap ScaleCompressFormUri(Activity activity,Uri uri,int scale) throws IOException {
-        InputStream input = activity.getContentResolver().openInputStream(uri);
-        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-        bitmapOptions.inSampleSize = scale;//设置缩放比例
-        bitmapOptions.inDither = true;//optional
-        bitmapOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;//optional
-        Bitmap bitmap = BitmapFactory.decodeStream(input, null, bitmapOptions);
-        input.close();
-
-        return bitmap;
-    }
-
-    /**
-     * 等比例缩放
-     * @param bitmap
-     * @param scale 目标比例
-     * @return
-     */
-    public static Bitmap ScaleCompressFormBitmap(Bitmap bitmap, int scale) {
-        int oldW = bitmap.getWidth();
-        int oldH = bitmap.getHeight();
-        // 取得想要缩放的matrix参数
-        Matrix matrix = new Matrix();
-        matrix.postScale(scale,scale);
-        // 得到新的图片
-        bitmap = Bitmap.createBitmap(bitmap, 0, 0, oldW, oldH, matrix, true);
-        return bitmap;
+    public static Bitmap ScaleCompressFormBitmap(Activity activity, Bitmap bitmap, float newW, float newH) throws IOException{
+        ContentResolver cr = activity.getContentResolver();
+        Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(cr, bitmap, null, null));
+        return ScaleCompressFormUri(activity,uri,newW,newH);
     }
 
     /**

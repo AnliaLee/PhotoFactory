@@ -105,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
                     });
         }else if(requestCode == PhotoFactory.TYPE_PHOTO_FROM_GALLERY){
             photoFactory.FactoryFinish(requestCode,resultCode,data)
+                    .addScaleCompress(100,100)
                     .setOnResultListener(new PhotoFactory.OnResultListener() {
                         @Override
                         public void OnCancel() {
@@ -120,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
                                     .AddAspectY(1)
                                     .AddAspectX(1)
                                     .Start();
+//                            imgPhoto.setImageURI(resultData.GetUri());
+//                            imgPhoto.setImageBitmap(resultData.GetBitmap());
                         }
                     });
         }else if(requestCode == PhotoFactory.TYPE_PHOTO_CROP){
