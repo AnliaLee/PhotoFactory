@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-	compile 'com.github.AnliaLee:PhotoFactory:1.1.0'
+	compile 'com.github.AnliaLee:PhotoFactory:1.1.1'
 }
 
 ```
@@ -109,12 +109,11 @@ photoFactory.FactoryFinish(requestCode,resultCode,data)
                 }
             });
 ```
-就这么简单，当然，你还可以对照片进行**压缩**处理，这里提供了三种压缩的方式
+就这么简单，当然，你还可以对照片进行**压缩**处理
 
 ```java
 addScaleCompress(int w, int h)//按目标宽高缩放
-addScaleCompress(int scale)//等比例缩放，缩放比为 原图:新图 = scale:1
-addQualityCompress(int targetSize)//质量压缩，targetSize为目标大小
+addQualityCompress(int targetSize)//质量压缩，targetSize为目标大小（低端机不建议使用，暂未优化内存）
 ```
 你可以选择**其中一种或多种**压缩方式对相片进行压缩，例如
 
@@ -127,7 +126,6 @@ photoFactory.FactoryFinish(requestCode,resultCode,data)
 //按顺序逐步压缩
 photoFactory.FactoryFinish(requestCode,resultCode,data)
 	    .addQualityCompress(128)
-	    .addScaleCompress(5)
 	    .addScaleCompress(300,300)
 	    .GetBitmap();
 ```
