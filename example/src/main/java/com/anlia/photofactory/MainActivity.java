@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         imgPhoto = (ImageView) findViewById(R.id.img_photo);
 
-        photoFactory = new PhotoFactory(this,this);
+        photoFactory = new PhotoFactory(this);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             //申请写入权限
             ActivityCompat.requestPermissions(this, new String[]{

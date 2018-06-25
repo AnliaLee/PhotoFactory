@@ -1,6 +1,5 @@
 package com.anlia.photofactory.factory;
 
-import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
@@ -22,7 +21,6 @@ import java.util.Map;
  */
 
 public class PhotoFactory {
-    private Activity mActivity;
     private Context mContext;
 
     private String mPhotoDir;
@@ -36,14 +34,12 @@ public class PhotoFactory {
     public static final int CODE_SUCCESS = 200;
     public static final int CODE_CANCELED = 201;
 
-    public PhotoFactory(Activity activity, Context context){
-        this(activity,context,
-                Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator+ "DCIM" +File.separator,
+    public PhotoFactory(Context context){
+        this(context, Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator+ "DCIM" +File.separator,
                 "original_"+System.currentTimeMillis()+ ".png");
     }
 
-    public PhotoFactory(Activity activity, Context context, String photoDir, String photoName){
-        mActivity = activity;
+    public PhotoFactory(Context context, String photoDir, String photoName){
         mContext = context;
         mPhotoDir = photoDir;
         mPhotoName = photoName;
@@ -71,7 +67,7 @@ public class PhotoFactory {
      * @return
      */
     public GalleryWorker FromGallery(){
-        return new GalleryWorker(mActivity,mPhotoDir,mPhotoName);
+        return new GalleryWorker(mContext,mPhotoDir,mPhotoName);
     }
 
     /**
