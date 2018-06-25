@@ -32,7 +32,7 @@ public class UriUtils {
              * 7.0 调用系统相机拍照不再允许使用Uri方式，应该替换为FileProvider
              * 并且这样可以解决MIUI系统上拍照返回size为0的情况
              */
-            return FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file);
+            return FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".factory.provider", file);
         }
     }
 
