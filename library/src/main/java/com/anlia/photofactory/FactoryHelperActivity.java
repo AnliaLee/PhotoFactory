@@ -66,15 +66,17 @@ public class FactoryHelperActivity extends Activity {
 
         Intent requestIntent = new Intent();
         Map<String,Object> map = (HashMap) intent.getSerializableExtra(KEY_PARAM);
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if(entry.getValue().equals("DataAndType")){
-                continue;
-            }
+        if(map!=null){
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                if(entry.getValue().equals("DataAndType")){
+                    continue;
+                }
 
-            if(entry.getValue() instanceof Uri){
-                requestIntent.putExtra(entry.getKey(),(Uri) entry.getValue());
-            }else if(entry.getValue() instanceof Integer){
-                requestIntent.putExtra(entry.getKey(),(int) entry.getValue());
+                if(entry.getValue() instanceof Uri){
+                    requestIntent.putExtra(entry.getKey(),(Uri) entry.getValue());
+                }else if(entry.getValue() instanceof Integer){
+                    requestIntent.putExtra(entry.getKey(),(int) entry.getValue());
+                }
             }
         }
 

@@ -35,22 +35,7 @@ public class MainActivity extends AppCompatActivity {
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
             }, 100);
         } else {
-//            photoFactory.FromGallery()
-//                    .StartForResult(new PhotoFactory.OnResultListener() {
-//                        @Override
-//                        public void OnCancel() {
-//                            Log.e(TAG,"取消从相册选择");
-//                        }
-//
-//                        @Override
-//                        public void OnSuccess(ResultData resultData) {
-//                            Uri uri = resultData.GetUri();
-//                            imgPhoto.setImageURI(uri);
-//                        }
-//                    });
-
-            photoFactory.FromCamera()
-                    .AddOutPutExtra()
+            photoFactory.FromGallery()
                     .StartForResult(new PhotoFactory.OnResultListener() {
                         @Override
                         public void OnCancel() {
@@ -59,23 +44,38 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void OnSuccess(ResultData resultData) {
-                            photoFactory.FromCrop(resultData.GetUri())
-                                    .AddAspectX(1)
-                                    .AddAspectY(1)
-                                    .StartForResult(new PhotoFactory.OnResultListener() {
-                                        @Override
-                                        public void OnCancel() {
-                                            Log.e(TAG,"取消从相册选择");
-                                        }
-
-                                        @Override
-                                        public void OnSuccess(ResultData resultData) {
-                                            Uri uri = resultData.GetUri();
-                                            imgPhoto.setImageURI(uri);
-                                        }
-                                    });
+                            Uri uri = resultData.GetUri();
+                            imgPhoto.setImageURI(uri);
                         }
                     });
+
+//            photoFactory.FromCamera()
+//                    .AddOutPutExtra()
+//                    .StartForResult(new PhotoFactory.OnResultListener() {
+//                        @Override
+//                        public void OnCancel() {
+//                            Log.e(TAG,"取消从相册选择");
+//                        }
+//
+//                        @Override
+//                        public void OnSuccess(ResultData resultData) {
+//                            photoFactory.FromCrop(resultData.GetUri())
+//                                    .AddAspectX(1)
+//                                    .AddAspectY(1)
+//                                    .StartForResult(new PhotoFactory.OnResultListener() {
+//                                        @Override
+//                                        public void OnCancel() {
+//                                            Log.e(TAG,"取消从相册选择");
+//                                        }
+//
+//                                        @Override
+//                                        public void OnSuccess(ResultData resultData) {
+//                                            Uri uri = resultData.GetUri();
+//                                            imgPhoto.setImageURI(uri);
+//                                        }
+//                                    });
+//                        }
+//                    });
         }
     }
 
@@ -85,22 +85,7 @@ public class MainActivity extends AppCompatActivity {
         switch(requestCode) {
             case 100:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    photoFactory.FromGallery()
-//                            .StartForResult(new PhotoFactory.OnResultListener() {
-//                                @Override
-//                                public void OnCancel() {
-//                                    Log.e(TAG,"取消从相册选择");
-//                                }
-//
-//                                @Override
-//                                public void OnSuccess(ResultData resultData) {
-//                                    Uri uri = resultData.GetUri();
-//                                    imgPhoto.setImageURI(uri);
-//                                }
-//                            });
-
-                    photoFactory.FromCamera()
-                            .AddOutPutExtra()
+                    photoFactory.FromGallery()
                             .StartForResult(new PhotoFactory.OnResultListener() {
                                 @Override
                                 public void OnCancel() {
@@ -109,23 +94,38 @@ public class MainActivity extends AppCompatActivity {
 
                                 @Override
                                 public void OnSuccess(ResultData resultData) {
-                                    photoFactory.FromCrop(resultData.GetUri())
-                                            .AddAspectX(1)
-                                            .AddAspectY(1)
-                                            .StartForResult(new PhotoFactory.OnResultListener() {
-                                                @Override
-                                                public void OnCancel() {
-
-                                                }
-
-                                                @Override
-                                                public void OnSuccess(ResultData resultData) {
-                                                    Uri uri = resultData.GetUri();
-                                                    imgPhoto.setImageURI(uri);
-                                                }
-                                            });
+                                    Uri uri = resultData.GetUri();
+                                    imgPhoto.setImageURI(uri);
                                 }
                             });
+
+//                    photoFactory.FromCamera()
+//                            .AddOutPutExtra()
+//                            .StartForResult(new PhotoFactory.OnResultListener() {
+//                                @Override
+//                                public void OnCancel() {
+//                                    Log.e(TAG,"取消从相册选择");
+//                                }
+//
+//                                @Override
+//                                public void OnSuccess(ResultData resultData) {
+//                                    photoFactory.FromCrop(resultData.GetUri())
+//                                            .AddAspectX(1)
+//                                            .AddAspectY(1)
+//                                            .StartForResult(new PhotoFactory.OnResultListener() {
+//                                                @Override
+//                                                public void OnCancel() {
+//
+//                                                }
+//
+//                                                @Override
+//                                                public void OnSuccess(ResultData resultData) {
+//                                                    Uri uri = resultData.GetUri();
+//                                                    imgPhoto.setImageURI(uri);
+//                                                }
+//                                            });
+//                                }
+//                            });
                 }else{// 没有获取到权限，做特殊处理
                     Toast.makeText(this, "请授予权限！", Toast.LENGTH_SHORT).show();
                 }
