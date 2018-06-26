@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-	compile 'com.github.AnliaLee:PhotoFactory:1.1.2'
+	compile 'com.github.AnliaLee:PhotoFactory:1.1.4'
 }
 
 ```
