@@ -56,7 +56,8 @@ public class CompressUtils {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         try {
-            BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options);
+            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+            BitmapFactory.decodeStream(inputStream, null, options);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;

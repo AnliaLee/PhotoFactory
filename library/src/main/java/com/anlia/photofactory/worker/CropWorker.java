@@ -13,6 +13,12 @@ import com.anlia.photofactory.result.ResultData;
 import com.anlia.photofactory.utils.UriUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Created by anlia on 2018/5/16.
@@ -43,10 +49,10 @@ public class CropWorker extends BaseWorker {
         FactoryHelperActivity.cropPhoto(mContext, mMap, new FactoryHelperActivity.ActivityResultListener() {
             @Override
             public void onResultCallback(int requestCode, int resultCode, Intent data) {
-                if(data == null){
-                    listener.OnCancel();
-                }else {
+                if(resultCode == RESULT_OK){
                     listener.OnSuccess(new ResultData(mContext,mUri,requestCode,resultCode,data,PhotoFactory.CODE_SUCCESS));
+                }else if(resultCode == RESULT_CANCELED){
+                    listener.OnCancel();
                 }
             }
         });
