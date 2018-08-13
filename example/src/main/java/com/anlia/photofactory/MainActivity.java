@@ -3,6 +3,7 @@ package com.anlia.photofactory;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +23,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
+
+import static com.anlia.photofactory.factory.PhotoFactory.ERROR_CROP_DATA;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView imgPhoto;
@@ -57,15 +60,20 @@ public class MainActivity extends AppCompatActivity {
                     photoFactory.FromGallery()
                             .StartForResult(new PhotoFactory.OnResultListener() {
                                 @Override
-                                public void OnCancel() {
+                                public void onCancel() {
                                     Log.e(TAG, "取消从相册选择");
                                 }
 
                                 @Override
-                                public void OnSuccess(ResultData resultData) {
+                                public void onSuccess(ResultData resultData) {
                                     dealSelectPhoto(resultData);
 //                            Uri uri = resultData.GetUri();
 //                            imgPhoto.setImageURI(uri);
+                                }
+
+                                @Override
+                                public void onError(String error) {
+
                                 }
                             });
                 }
@@ -85,13 +93,18 @@ public class MainActivity extends AppCompatActivity {
                             .AddOutPutExtra()
                             .StartForResult(new PhotoFactory.OnResultListener() {
                                 @Override
-                                public void OnCancel() {
+                                public void onCancel() {
                                     Log.e(TAG, "取消从相册选择");
                                 }
 
                                 @Override
-                                public void OnSuccess(ResultData resultData) {
+                                public void onSuccess(ResultData resultData) {
                                     dealSelectPhoto(resultData);
+                                }
+
+                                @Override
+                                public void onError(String error) {
+
                                 }
                             });
                 }
@@ -108,15 +121,20 @@ public class MainActivity extends AppCompatActivity {
                     photoFactory.FromGallery()
                             .StartForResult(new PhotoFactory.OnResultListener() {
                                 @Override
-                                public void OnCancel() {
+                                public void onCancel() {
                                     Log.e(TAG,"取消从相册选择");
                                 }
 
                                 @Override
-                                public void OnSuccess(ResultData resultData) {
+                                public void onSuccess(ResultData resultData) {
                                     dealSelectPhoto(resultData);
 //                                    Uri uri = resultData.GetUri();
 //                                    imgPhoto.setImageURI(uri);
+                                }
+
+                                @Override
+                                public void onError(String error) {
+
                                 }
                             });
                 } else {// 没有获取到权限，做特殊处理
@@ -130,13 +148,18 @@ public class MainActivity extends AppCompatActivity {
                             .AddOutPutExtra()
                             .StartForResult(new PhotoFactory.OnResultListener() {
                                 @Override
-                                public void OnCancel() {
+                                public void onCancel() {
                                     Log.e(TAG, "取消从相册选择");
                                 }
 
                                 @Override
-                                public void OnSuccess(ResultData resultData) {
+                                public void onSuccess(ResultData resultData) {
                                     dealSelectPhoto(resultData);
+                                }
+
+                                @Override
+                                public void onError(String error) {
+
                                 }
                             });
                 } else {// 没有获取到权限，做特殊处理
@@ -149,18 +172,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void dealSelectPhoto(ResultData resultData) {
-        photoFactory.FromCrop(resultData.addScaleCompress(1000, 1000).GetUri())
+        Uri uri = resultData
+                .addScaleCompress(1000, 1000)
+                .setExceptionListener(new ResultData.OnExceptionListener() {
+                    @Override
+                    public void onCatch(String error, Exception e) {
+                        Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                })
+                .GetUri();
+        photoFactory.FromCrop(uri)
                 .AddAspectX(1)
                 .AddAspectY(1)
                 .StartForResult(new PhotoFactory.OnResultListener() {
                     @Override
-                    public void OnCancel() {
+                    public void onCancel() {
                         Log.e(TAG, "取消裁剪");
                     }
 
                     @Override
-                    public void OnSuccess(ResultData data) {
+                    public void onSuccess(ResultData data) {
                         dealCropPhoto(data.addScaleCompress(164, 164).GetBitmap());
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        switch (error){
+                            case ERROR_CROP_DATA:
+                                Toast.makeText(MainActivity.this, "data为空", Toast.LENGTH_SHORT).show();
+                                break;
+                        }
                     }
                 });
     }

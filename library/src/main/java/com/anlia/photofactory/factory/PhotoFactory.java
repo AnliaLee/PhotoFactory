@@ -34,6 +34,13 @@ public class PhotoFactory {
     public static final int CODE_SUCCESS = 200;
     public static final int CODE_CANCELED = 201;
 
+    public static final String ERROR_CROP_DATA = "ERROR_CROP_DATA";//获取裁剪图片uri时出现异常，通常发生在手机存储空间不足或存储空间被占用的情况
+    public static final String ERROR_RESULT_DATA = "ERROR_RESULT_DATA";//从ActivityResult的intent中获取数据出现异常
+    public static final String ERROR_CAMERA_NOT_FOUND = "ERROR_CAMERA_NOT_FOUND";//寻找照相设备异常，通常出现在一些没有相机的android设备上
+    public static final String ERROR_MEDIA_INSERT_IMAGE = "ERROR_MEDIA_INSERT_IMAGE";//插入图片异常，通常发生在手机存储空间不足或存储空间被占用的情况
+    public static final String ERROR_MEDIA_GET_BITMAP = "ERROR_MEDIA_GET_BITMAP";//获取bitmap异常，通常发生在通过uri查找不到对应照片的情况
+    public static final String ERROR_COMPRESS = "ERROR_COMPRESS";//压缩图片异常，通常发生在某些配置较低的机型内存不足的情况
+
     public PhotoFactory(Context context){
         this(context, Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator+ "DCIM" +File.separator,
                 "original_"+System.currentTimeMillis()+ ".png");
@@ -97,7 +104,8 @@ public class PhotoFactory {
     }
 
     public interface OnResultListener {
-        void OnCancel();
-        void OnSuccess(ResultData resultData);
+        void onCancel();
+        void onSuccess(ResultData resultData);
+        void onError(String error);
     }
 }

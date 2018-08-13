@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.anlia.photofactory.factory.PhotoFactory.ERROR_CAMERA_NOT_FOUND;
 import static com.anlia.photofactory.factory.PhotoFactory.TYPE_PHOTO_CROP;
 import static com.anlia.photofactory.factory.PhotoFactory.TYPE_PHOTO_FROM_GALLERY;
 
@@ -29,32 +30,32 @@ public class FactoryHelperActivity extends Activity {
     private static final int JOB_SELECT_PHOTO_FROM_CAMERA = 2;
     private static final int JOB_CROP_PHOTO = 3;
 
-    public static void selectPhotoFromGallery(Context context, ActivityResultListener listener){
+    public static void selectPhotoFromGallery(Context context, ActivityResultListener listener) {
         FactoryHelperActivity.mActivityResultListener = listener;
 
-        Intent intent = new Intent(context,FactoryHelperActivity.class);
+        Intent intent = new Intent(context, FactoryHelperActivity.class);
         intent.putExtra(KEY_JOB, JOB_SELECT_PHOTO_FROM_GALLERY);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
-    public static void selectPhotoFromCamera(Context context, Map<String,Object> map, int requestCode, ActivityResultListener listener){
+    public static void selectPhotoFromCamera(Context context, Map<String, Object> map, int requestCode, ActivityResultListener listener) {
         FactoryHelperActivity.mActivityResultListener = listener;
 
-        Intent intent = new Intent(context,FactoryHelperActivity.class);
+        Intent intent = new Intent(context, FactoryHelperActivity.class);
         intent.putExtra(KEY_JOB, JOB_SELECT_PHOTO_FROM_CAMERA);
-        intent.putExtra(KEY_PARAM,(Serializable) map);
-        intent.putExtra(KEY_REQUEST,requestCode);
+        intent.putExtra(KEY_PARAM, (Serializable) map);
+        intent.putExtra(KEY_REQUEST, requestCode);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
-    public static void cropPhoto(Context context, Map<String,Object> map, ActivityResultListener listener){
+    public static void cropPhoto(Context context, Map<String, Object> map, ActivityResultListener listener) {
         FactoryHelperActivity.mActivityResultListener = listener;
 
-        Intent intent = new Intent(context,FactoryHelperActivity.class);
+        Intent intent = new Intent(context, FactoryHelperActivity.class);
         intent.putExtra(KEY_JOB, JOB_CROP_PHOTO);
-        intent.putExtra(KEY_PARAM,(Serializable) map);
+        intent.putExtra(KEY_PARAM, (Serializable) map);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
@@ -65,51 +66,58 @@ public class FactoryHelperActivity extends Activity {
         Intent intent = getIntent();
 
         Intent requestIntent = new Intent();
-        Map<String,Object> map = (HashMap) intent.getSerializableExtra(KEY_PARAM);
-        if(map!=null){
+        Map<String, Object> map = (HashMap) intent.getSerializableExtra(KEY_PARAM);
+        if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if(entry.getValue().equals("DataAndType")){
+                if (entry.getKey().equals("DataAndType")) {
                     continue;
                 }
 
-                if(entry.getValue() instanceof Uri){
-                    requestIntent.putExtra(entry.getKey(),(Uri) entry.getValue());
-                }else if(entry.getValue() instanceof Integer){
-                    requestIntent.putExtra(entry.getKey(),(int) entry.getValue());
+                if (entry.getValue() instanceof Uri) {
+                    requestIntent.putExtra(entry.getKey(), (Uri) entry.getValue());
+                } else if (entry.getValue() instanceof Integer) {
+                    requestIntent.putExtra(entry.getKey(), (int) entry.getValue());
                 }
             }
         }
 
-        switch (intent.getIntExtra(KEY_JOB, 0)){
+        switch (intent.getIntExtra(KEY_JOB, 0)) {
             case JOB_SELECT_PHOTO_FROM_GALLERY:
                 requestIntent.setType("image/*");// 设置文件类型
                 requestIntent.setAction(Intent.ACTION_PICK);
                 requestIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(requestIntent,TYPE_PHOTO_FROM_GALLERY);
+                startActivityForResult(requestIntent, TYPE_PHOTO_FROM_GALLERY);
                 break;
             case JOB_SELECT_PHOTO_FROM_CAMERA:
-                requestIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(requestIntent,intent.getIntExtra(KEY_REQUEST,-99));
+                try {
+                    requestIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(requestIntent, intent.getIntExtra(KEY_REQUEST, -99));
+                } catch (Exception e) {
+                    if (mActivityResultListener != null) {
+                        mActivityResultListener.onResultCallback(0, 0, null, ERROR_CAMERA_NOT_FOUND);
+                    }
+                    finish();
+                }
                 break;
 
             case JOB_CROP_PHOTO:
                 requestIntent.setAction("com.android.camera.action.CROP");
                 requestIntent.putExtra("crop", "true");
-                requestIntent.setDataAndType((Uri) map.get("DataAndType"),"image/*");
-                startActivityForResult(requestIntent,TYPE_PHOTO_CROP);
+                requestIntent.setDataAndType((Uri) map.get("DataAndType"), "image/*");
+                startActivityForResult(requestIntent, TYPE_PHOTO_CROP);
                 break;
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(mActivityResultListener!=null){
-            mActivityResultListener.onResultCallback(requestCode,resultCode,data);
+        if (mActivityResultListener != null) {
+            mActivityResultListener.onResultCallback(requestCode, resultCode, data, null);
         }
         finish();
     }
 
-    public interface ActivityResultListener{
-        void onResultCallback(int requestCode, int resultCode, Intent data);
+    public interface ActivityResultListener {
+        void onResultCallback(int requestCode, int resultCode, Intent data, String error);
     }
 }

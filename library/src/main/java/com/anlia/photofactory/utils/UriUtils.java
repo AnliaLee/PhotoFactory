@@ -20,14 +20,15 @@ import java.io.IOException;
 public class UriUtils {
     /**
      * 获取文件Uri地址
+     *
      * @param context
      * @param file
      * @return
      */
-    public static Uri GetFileUri(Context context, File file){
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M){
+    public static Uri GetFileUri(Context context, File file) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
             return Uri.fromFile(file);
-        }else{
+        } else {
             /**
              * 7.0 调用系统相机拍照不再允许使用Uri方式，应该替换为FileProvider
              * 并且这样可以解决MIUI系统上拍照返回size为0的情况
@@ -36,7 +37,7 @@ public class UriUtils {
         }
     }
 
-    public static Uri GetUriForCrop(Context context, Uri uri){
+    public static Uri GetUriForCrop(Context context, Uri uri) {
         Bitmap bitmap = null;
         // 首先设置 inJustDecodeBounds=true 来获取图片尺寸
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -63,6 +64,10 @@ public class UriUtils {
             }
         }
 
-        return Uri.parse(MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, null, null));
+        try {
+            return Uri.parse(MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, null, null));
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

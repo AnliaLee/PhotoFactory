@@ -9,6 +9,11 @@ import android.provider.MediaStore;
 import com.anlia.photofactory.factory.PhotoFactory;
 import com.anlia.photofactory.utils.CompressUtils;
 
+import static com.anlia.photofactory.factory.PhotoFactory.ERROR_COMPRESS;
+import static com.anlia.photofactory.factory.PhotoFactory.ERROR_MEDIA_GET_BITMAP;
+import static com.anlia.photofactory.factory.PhotoFactory.ERROR_RESULT_DATA;
+import static com.anlia.photofactory.factory.PhotoFactory.ERROR_MEDIA_INSERT_IMAGE;
+
 /**
  * Created by anlia on 2018/5/16.
  */
@@ -18,13 +23,14 @@ public class ResultData {
     private Bitmap bitmap = null;
     private Uri mUri;
     private Context mContext;
+    private OnExceptionListener mExceptionListener;
 
     private int mRequestCode;
     private int mResultCode;
     private int mCancelCode;
     private boolean isCompress = false;
 
-    public ResultData(Context context, Uri uri, int requestCode, int resultCode, Intent data){
+    public ResultData(Context context, Uri uri, int requestCode, int resultCode, Intent data) {
         mContext = context;
         mUri = uri;
         mRequestCode = requestCode;
@@ -32,7 +38,7 @@ public class ResultData {
         mData = data;
     }
 
-    public ResultData(Context context, Uri uri, int requestCode, int resultCode, Intent data, int dataCode){
+    public ResultData(Context context, Uri uri, int requestCode, int resultCode, Intent data, int dataCode) {
         mContext = context;
         mUri = uri;
         mRequestCode = requestCode;
@@ -43,24 +49,25 @@ public class ResultData {
 
     /**
      * 按目标宽高缩放
+     *
      * @param w
      * @param h
      * @return
      */
-    public ResultData addScaleCompress(int w, int h){
+    public ResultData addScaleCompress(int w, int h) {
         try {
-            if(isCompress){
-                bitmap = CompressUtils.ScaleCompressFormBitmap(mContext,bitmap,w,h);
-            }else {
+            if (isCompress) {
+                bitmap = CompressUtils.ScaleCompressFormBitmap(mContext, bitmap, w, h);
+            } else {
                 isCompress = true;
-                bitmap = CompressUtils.ScaleCompressFormUri(mContext,mUri,h,w);
+                bitmap = CompressUtils.ScaleCompressFormUri(mContext, mUri, h, w);
             }
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            mExceptionListener.onCatch(ERROR_COMPRESS, e);
             mCancelCode = PhotoFactory.CODE_CANCELED;
         }
 
-        if (bitmap == null){//进行一次校验，防止特殊机型从相册获取图片点击取消时返回的状态不为CANCELED
+        if (bitmap == null) {//进行一次校验，防止特殊机型从相册获取图片点击取消时返回的状态不为CANCELED
             mCancelCode = PhotoFactory.CODE_CANCELED;
         }
         return this;
@@ -68,48 +75,54 @@ public class ResultData {
 
     /**
      * 质量压缩
+     *
      * @param targetSize 目标大小
      * @return
      */
-    public ResultData addQualityCompress(int targetSize){
+    public ResultData addQualityCompress(int targetSize) {
         try {
-            if(isCompress){
-                bitmap = CompressUtils.QualityCompressFromBitmap(bitmap,targetSize);
-            }else {
+            if (isCompress) {
+                bitmap = CompressUtils.QualityCompressFromBitmap(bitmap, targetSize);
+            } else {
                 isCompress = true;
-                bitmap = CompressUtils.QualityCompressFromUri(mContext,mUri,targetSize);
+                bitmap = CompressUtils.QualityCompressFromUri(mContext, mUri, targetSize);
             }
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            onCatch(ERROR_COMPRESS, e);
             mCancelCode = PhotoFactory.CODE_CANCELED;
         }
 
-        if (bitmap == null){//进行一次校验，防止特殊机型从相册获取图片点击取消时返回的状态不为CANCELED
+        if (bitmap == null) {//进行一次校验，防止特殊机型从相册获取图片点击取消时返回的状态不为CANCELED
             mCancelCode = PhotoFactory.CODE_CANCELED;
         }
         return this;
     }
 
-    public Bitmap GetBitmap(){
-        if(mCancelCode != PhotoFactory.CODE_SUCCESS){
+    public ResultData setExceptionListener(OnExceptionListener listener) {
+        mExceptionListener = listener;
+        return this;
+    }
+
+    public Bitmap GetBitmap() {
+        if (mCancelCode != PhotoFactory.CODE_SUCCESS) {
             return null;
         }
-        switch (mRequestCode){
+        switch (mRequestCode) {
             case PhotoFactory.TYPE_PHOTO_AUTO_COMPRESS:
-                try{
+                try {
                     bitmap = mData.getParcelableExtra("data");
-                }catch (NullPointerException e){
-                    e.printStackTrace();
+                } catch (NullPointerException e) {
+                    onCatch(ERROR_RESULT_DATA, e);
                 }
                 break;
             case PhotoFactory.TYPE_PHOTO_UNTREATED:
             case PhotoFactory.TYPE_PHOTO_FROM_GALLERY:
             case PhotoFactory.TYPE_PHOTO_CROP:
-                if(!isCompress){
+                if (!isCompress) {
                     try {
                         bitmap = MediaStore.Images.Media.getBitmap(mContext.getContentResolver(), mUri);
-                    }catch (Exception e){
-                        e.printStackTrace();
+                    } catch (Exception e) {
+                        onCatch(ERROR_MEDIA_GET_BITMAP, e);
                     }
                 }
                 break;
@@ -117,27 +130,41 @@ public class ResultData {
         return bitmap;
     }
 
-    public Uri GetUri(){
-        if(mCancelCode != PhotoFactory.CODE_SUCCESS){
+    public Uri GetUri() {
+        if (mCancelCode != PhotoFactory.CODE_SUCCESS) {
             return null;
         }
-        switch (mRequestCode){
+        switch (mRequestCode) {
             case PhotoFactory.TYPE_PHOTO_AUTO_COMPRESS:
-                try{
+                try {
                     bitmap = mData.getParcelableExtra("data");
-                    mUri = Uri.parse(MediaStore.Images.Media.insertImage(mContext.getContentResolver(), bitmap, null,null));
-                }catch (NullPointerException e){
-                    e.printStackTrace();
+                    mUri = Uri.parse(MediaStore.Images.Media.insertImage(mContext.getContentResolver(), bitmap, null, null));
+                } catch (NullPointerException e) {
+                    onCatch(ERROR_MEDIA_INSERT_IMAGE, e);
                 }
                 break;
             case PhotoFactory.TYPE_PHOTO_UNTREATED:
             case PhotoFactory.TYPE_PHOTO_FROM_GALLERY:
             case PhotoFactory.TYPE_PHOTO_CROP:
-                if(isCompress){
-                    mUri = Uri.parse(MediaStore.Images.Media.insertImage(mContext.getContentResolver(), bitmap, null,null));
+                if (isCompress) {
+                    try {
+                        mUri = Uri.parse(MediaStore.Images.Media.insertImage(mContext.getContentResolver(), bitmap, null, null));
+                    } catch (Exception e) {
+                        onCatch(ERROR_MEDIA_INSERT_IMAGE, e);
+                    }
                 }
                 break;
         }
         return mUri;
+    }
+
+    public interface OnExceptionListener {
+        void onCatch(String error, Exception e);
+    }
+
+    private void onCatch(String error, Exception e) {
+        if (mExceptionListener != null) {
+            mExceptionListener.onCatch(error, e);
+        }
     }
 }

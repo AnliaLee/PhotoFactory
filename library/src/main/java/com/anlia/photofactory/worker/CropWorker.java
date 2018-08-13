@@ -13,12 +13,9 @@ import com.anlia.photofactory.result.ResultData;
 import com.anlia.photofactory.utils.UriUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 
-import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
+import static com.anlia.photofactory.factory.PhotoFactory.ERROR_CROP_DATA;
 
 /**
  * Created by anlia on 2018/5/16.
@@ -28,31 +25,40 @@ public class CropWorker extends BaseWorker {
     private Uri cropData;
 
     public CropWorker(Context context, String photoDir, String photoName, Uri data) {
-        super(context,photoDir,photoName);
-        cropData = UriUtils.GetUriForCrop(mContext,data);
-        mMap.put(MediaStore.EXTRA_OUTPUT,Uri.fromFile(new File(photoDir,photoName)));//缓存裁剪图片得用这种格式的uri
-        mMap.put("DataAndType",cropData);
+        super(context, photoDir, photoName);
+        cropData = UriUtils.GetUriForCrop(mContext, data);
+        mMap.put(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(photoDir, photoName)));//缓存裁剪图片得用这种格式的uri
+        mMap.put("DataAndType", cropData);
     }
 
-    public CropWorker AddAspectX(int value){
-        mMap.put("aspectX",value);
+    public CropWorker AddAspectX(int value) {
+        mMap.put("aspectX", value);
         return this;
     }
 
-    public CropWorker AddAspectY(int value){
-        mMap.put("aspectY",value);
+    public CropWorker AddAspectY(int value) {
+        mMap.put("aspectY", value);
         return this;
     }
 
     @Override
     public void StartForResult(@NonNull final PhotoFactory.OnResultListener listener) {
+        if (cropData == null) {
+            listener.onError(ERROR_CROP_DATA);
+            return;
+        }
         FactoryHelperActivity.cropPhoto(mContext, mMap, new FactoryHelperActivity.ActivityResultListener() {
             @Override
-            public void onResultCallback(int requestCode, int resultCode, Intent data) {
-                if(resultCode == RESULT_OK){
-                    listener.OnSuccess(new ResultData(mContext,mUri,requestCode,resultCode,data,PhotoFactory.CODE_SUCCESS));
-                }else if(resultCode == RESULT_CANCELED){
-                    listener.OnCancel();
+            public void onResultCallback(int requestCode, int resultCode, Intent data, String error) {
+                if (error != null) {
+                    listener.onError(error);
+                    return;
+                }
+
+                if (resultCode == RESULT_OK) {
+                    listener.onSuccess(new ResultData(mContext, mUri, requestCode, resultCode, data, PhotoFactory.CODE_SUCCESS));
+                } else {
+                    listener.onCancel();
                 }
             }
         });
