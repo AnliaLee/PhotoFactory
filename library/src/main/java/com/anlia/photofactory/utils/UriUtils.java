@@ -61,6 +61,14 @@ public class UriUtils {
                 fileDescriptor.close();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (OutOfMemoryError e) {
+                e.printStackTrace();
+                //防爆操作
+                try {
+                    bitmap = CompressUtils.ScaleCompressFormUri(context, uri, 500, 500);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
 
