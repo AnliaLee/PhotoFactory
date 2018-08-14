@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-	compile 'com.github.AnliaLee:PhotoFactory:1.1.5'
+	compile 'com.github.AnliaLee:PhotoFactory:1.1.8'
 }
 
 ```
@@ -24,72 +24,79 @@ dependencies {
 ### 配置权限
 
 ```xml
+<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 ```
 ***
 ### 如何使用
 
 **PhotoFactory**兼容了**Android 7.0 FileProvider**获取相片**uri**的问题，相关的配置在 **1.1.2** 版本以上已为大家配好，在项目中使用时只需考虑**Android 6.0的动态权限管理**即可
 
-#### 使用步骤如下
+#### 初始化及相关API
 
 ```java
-PhotoFactory photoFactory = new PhotoFactory(this);//(Context context)
+//两种初始化方法
+PhotoFactory photoFactory = new PhotoFactory(context);//自动配置临时图片的路径
+PhotoFactory photoFactory = new PhotoFactory(context, photoDir, photoName)
 ```
 设置选择照片的方式
 
 ```java
-//从拍照中选图
-//photoFactory.FromCamera() 
-
 //从相册中选图
-photoFactory.FromGallery() 
-        .StartForResult(new PhotoFactory.OnResultListener() {
-            @Override
-            public void OnCancel() {
-                Log.e(TAG,"取消从相册选择");
-            }
+photoFactory.FromGallery()
+            .StartForResult(new PhotoFactory.OnResultListener() {
+                @Override
+                public void onCancel() {
+                    //取消选择的回调
+                }
 
-            @Override
-            public void OnSuccess(ResultData resultData) {
-                Uri uri = resultData.GetUri();
-                imgPhoto.setImageURI(uri);
-            }
-        });
-```
+                @Override
+                public void onSuccess(ResultData resultData) {
+                    //选择成功的回调
+                }
 
-此外**PhotoFactory**还提供了裁剪功能
+                @Override
+                public void onError(String error) {
+                    //操作过程中发生异常的回调
+                }
+            });
+            
+//从拍照中选图
+photoFactory.FromCamera() 
 
-```
+//裁剪图片
 photoFactory.FromCrop(uri)
-        .AddAspectX(1)
-        .AddAspectY(1)
-        .StartForResult(new PhotoFactory.OnResultListener() {
-            @Override
-            public void OnCancel() {
-
-            }
-
-            @Override
-            public void OnSuccess(ResultData resultData) {
-                Uri uri = resultData.GetUri();
-                imgPhoto.setImageURI(uri);
-            }
-        });
 ```
 
-获取相片**bitmap**或**uri**
+对返回的数据的处理
 
 ```java
 resultData.GetBitmap()
 resultData.GetUri()
 ```
-当然，你还可以对照片进行**压缩**处理
+
+当然，你还可以对图片进行**压缩**处理
 
 ```java
 resultData.addScaleCompress(w,h).GetUri()//按目标宽高缩放
 resultData.addQualityCompress(targetSize).GetUri()//质量压缩，targetSize为目标大小（低端机不建议使用，暂未优化内存）
 ```
+
+以及抓取处理结果时的**异常**
+
+```java
+Uri uri = resultData
+        .setExceptionListener(new ResultData.OnExceptionListener() {
+            @Override
+            public void onCatch(String error, Exception e) {
+                //抓取异常的回调
+            }
+        })
+        .GetUri();
+```
+
+具体使用流程可参照
 
 ***
 #### 搜索图片
