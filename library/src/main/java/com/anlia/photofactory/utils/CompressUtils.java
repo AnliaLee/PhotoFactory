@@ -43,14 +43,15 @@ public class CompressUtils {
 
     /**
      * 按目标宽高缩放
+     *
      * @param context
      * @param uri
-     * @param newW 目标宽度
-     * @param newH 目标高度
+     * @param newW    目标宽度
+     * @param newH    目标高度
      * @return
      * @throws IOException
      */
-    public static Bitmap ScaleCompressFormUri(Context context,Uri uri,float newW,float newH) throws IOException {
+    public static Bitmap ScaleCompressFormUri(Context context, Uri uri, float newW, float newH) throws IOException {
         Bitmap bitmap = null;
         // 首先设置 inJustDecodeBounds=true 来获取图片尺寸
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -66,7 +67,7 @@ public class CompressUtils {
         AssetFileDescriptor fileDescriptor = null;
         try {
             // 计算 inSampleSize 的值
-            options.inSampleSize = calculateNewBitmapSize(options,(int) newW,(int) newH);
+            options.inSampleSize = calculateNewBitmapSize(options, (int) newW, (int) newH);
 
             // 根据计算出的 inSampleSize 来解码图片生成Bitmap
             options.inJustDecodeBounds = false;
@@ -81,6 +82,9 @@ public class CompressUtils {
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
+            } catch (OutOfMemoryError e) {
+                e.printStackTrace();
+                bitmap = ScaleCompressFormUri(context, uri, newW/2, newH/2);
             }
         }
         return bitmap;
@@ -88,36 +92,39 @@ public class CompressUtils {
 
     /**
      * 按目标宽高缩放
+     *
      * @param context
-     * @param bitmap 目标bitmap
-     * @param newW 目标宽度
-     * @param newH 目标高度
+     * @param bitmap  目标bitmap
+     * @param newW    目标宽度
+     * @param newH    目标高度
      * @return
      * @throws IOException
      */
-    public static Bitmap ScaleCompressFormBitmap(Context context, Bitmap bitmap, float newW, float newH) throws IOException{
+    public static Bitmap ScaleCompressFormBitmap(Context context, Bitmap bitmap, float newW, float newH) throws IOException {
         ContentResolver cr = context.getContentResolver();
         Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(cr, bitmap, null, null));
-        return ScaleCompressFormUri(context,uri,newW,newH);
+        return ScaleCompressFormUri(context, uri, newW, newH);
     }
 
     /**
      * 质量压缩
+     *
      * @param context
      * @param uri
      * @param targetSize 目标大小
      * @return
      * @throws IOException
      */
-    public static Bitmap QualityCompressFromUri(Context context,Uri uri,int targetSize) throws IOException{
+    public static Bitmap QualityCompressFromUri(Context context, Uri uri, int targetSize) throws IOException {
         InputStream input = context.getContentResolver().openInputStream(uri);
         Bitmap bitmap = BitmapFactory.decodeStream(input);
         input.close();
-        return QualityCompressFromBitmap(bitmap,targetSize);
+        return QualityCompressFromBitmap(bitmap, targetSize);
     }
 
     /**
      * 质量压缩
+     *
      * @param image
      * @param targetSize 目标大小
      * @return

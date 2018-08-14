@@ -173,7 +173,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void dealSelectPhoto(ResultData resultData) {
         Uri uri = resultData
-                .addScaleCompress(1000, 1000)
                 .setExceptionListener(new ResultData.OnExceptionListener() {
                     @Override
                     public void onCatch(String error, Exception e) {
