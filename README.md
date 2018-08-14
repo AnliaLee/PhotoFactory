@@ -96,6 +96,18 @@ Uri uri = resultData
         .GetUri();
 ```
 
+相关异常解析（适用于 OnResultListener.onError 或 OnExceptionListener.onCatch 回调）
+
+```java
+"ERROR_CROP_DATA": 获取裁剪图片uri时出现异常，通常发生在手机存储空间不足、存储空间被占用或oom的情况
+"ERROR_RESULT_DATA": 从ActivityResult的intent中获取数据出现异常
+"ERROR_CAMERA_NOT_FOUND": 寻找照相设备异常，通常出现在一些没有相机的android设备上
+"ERROR_MEDIA_INSERT_IMAGE": 插入图片异常，通常发生在手机存储空间不足或存储空间被占用的情况
+"ERROR_MEDIA_GET_BITMAP": 获取bitmap异常，通常发生在通过uri查找不到对应照片的情况
+"ERROR_COMPRESS": 压缩图片异常，通常发生在某些配置较低的机型内存不足的情况
+```
+
+
 具体使用流程可参照demo
 
 ***
