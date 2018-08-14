@@ -96,7 +96,7 @@ Uri uri = resultData
         .GetUri();
 ```
 
-具体使用流程可参照
+具体使用流程可参照demo
 
 ***
 #### 搜索图片
