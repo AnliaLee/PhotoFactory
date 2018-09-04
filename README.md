@@ -105,6 +105,7 @@ Uri uri = resultData
 "ERROR_MEDIA_INSERT_IMAGE": 插入图片异常，通常发生在手机存储空间不足或存储空间被占用的情况
 "ERROR_MEDIA_GET_BITMAP": 获取bitmap异常，通常发生在通过uri查找不到对应照片的情况
 "ERROR_COMPRESS": 压缩图片异常，通常发生在某些配置较低的机型内存不足的情况
+"ERROR_PICK_NOT_FOUND": 启动系统相册失败
 ```
 
 
