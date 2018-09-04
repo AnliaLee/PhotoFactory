@@ -44,8 +44,9 @@ public class UriUtils {
         options.inJustDecodeBounds = true;
         try {
             BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options);
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
 
         AssetFileDescriptor fileDescriptor = null;
@@ -59,8 +60,9 @@ public class UriUtils {
             try {
                 bitmap = BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
                 fileDescriptor.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                return null;
             } catch (OutOfMemoryError e) {
                 e.printStackTrace();
                 return null;

@@ -85,6 +85,8 @@ public class CompressUtils {
             } catch (OutOfMemoryError e) {
                 e.printStackTrace();
                 bitmap = ScaleCompressFormUri(context, uri, newW/2, newH/2);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return bitmap;
@@ -116,10 +118,15 @@ public class CompressUtils {
      * @throws IOException
      */
     public static Bitmap QualityCompressFromUri(Context context, Uri uri, int targetSize) throws IOException {
-        InputStream input = context.getContentResolver().openInputStream(uri);
-        Bitmap bitmap = BitmapFactory.decodeStream(input);
-        input.close();
-        return QualityCompressFromBitmap(bitmap, targetSize);
+        try {
+            InputStream input = context.getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(input);
+            input.close();
+            return QualityCompressFromBitmap(bitmap, targetSize);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.anlia.photofactory.factory.PhotoFactory.ERROR_CAMERA_NOT_FOUND;
+import static com.anlia.photofactory.factory.PhotoFactory.ERROR_PICK_NOT_FOUND;
 import static com.anlia.photofactory.factory.PhotoFactory.TYPE_PHOTO_CROP;
 import static com.anlia.photofactory.factory.PhotoFactory.TYPE_PHOTO_FROM_GALLERY;
 
@@ -83,23 +84,31 @@ public class FactoryHelperActivity extends Activity {
 
         switch (intent.getIntExtra(KEY_JOB, 0)) {
             case JOB_SELECT_PHOTO_FROM_GALLERY:
-                requestIntent.setType("image/*");// 设置文件类型
-                requestIntent.setAction(Intent.ACTION_PICK);
-                requestIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(requestIntent, TYPE_PHOTO_FROM_GALLERY);
+                try {
+                    requestIntent.setType("image/*");// 设置文件类型
+                    requestIntent.setAction(Intent.ACTION_PICK);
+                    requestIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(requestIntent, TYPE_PHOTO_FROM_GALLERY);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (mActivityResultListener != null) {
+                        mActivityResultListener.onResultCallback(0, 0, null, ERROR_PICK_NOT_FOUND);
+                    }
+                    finish();
+                }
                 break;
             case JOB_SELECT_PHOTO_FROM_CAMERA:
                 try {
                     requestIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
                     startActivityForResult(requestIntent, intent.getIntExtra(KEY_REQUEST, -99));
                 } catch (Exception e) {
+                    e.printStackTrace();
                     if (mActivityResultListener != null) {
                         mActivityResultListener.onResultCallback(0, 0, null, ERROR_CAMERA_NOT_FOUND);
                     }
                     finish();
                 }
                 break;
-
             case JOB_CROP_PHOTO:
                 requestIntent.setAction("com.android.camera.action.CROP");
                 requestIntent.putExtra("crop", "true");
