@@ -21,6 +21,8 @@ dependencies {
 
 ```
 
+***
+
 ### 配置权限
 
 ```xml
@@ -30,9 +32,34 @@ dependencies {
 <uses-permission android:name="android.permission.CAMERA"/>
 ```
 ***
+
+### 适配相关
+适配了**Android 6.0**需要请求运行时权限的问题（ **1.2.0版本 ~** ）
+
+适配了**Android 7.0 FileProvider**获取相片**uri**的问题（ **1.1.2版本 ~** ）
+***
 ### 如何使用
 
-**PhotoFactory**兼容了**Android 7.0 FileProvider**获取相片**uri**的问题，相关的配置在 **1.1.2** 版本以上已为大家配好，在项目中使用时只需考虑**Android 6.0的动态权限管理**即可
+#### 权限相关配置
+
+针对图片选取增加了动态获取权限的功能（依赖于动态权限框架 [yanzhenjie/AndPermission](https://github.com/yanzhenjie/AndPermission)），即在**Android 6.0**以上调用图片选取功能时不需要再另外编写请求运行时权限的代码了
+
+此外，在向用户申请权限时，针对用户有可能执行**不再询问并拒绝权限**的操作，**PhotoFactory**提供了相应的回调和跳转至**应用管理设置界面**的方法，示例如下：
+
+```java
+//在Application中或第一次使用PhotoFactory时调用此方法即可
+//在回调方法onAction中你可以显示一个对话框让用户选择是否跳转至应用管理界面
+PhotoFactory.setPermissionAlwaysDeniedAction(new PermissionAlwaysDenied.Action() {
+    @Override
+    public void onAction(Context context, List<String> permissions, final PermissionAlwaysDenied.Executor executor) {
+        //参数 permissions 为用户拒绝的权限列表
+        //调用 PhotoFactory.transformPermissionText 可以将权限名称翻译成中文文本
+        //调用 executor.toSetting() 可以跳转至应用管理界面
+    }
+});
+```
+
+具体示例可参照demo
 
 #### 初始化及相关API
 
@@ -107,29 +134,6 @@ Uri uri = resultData
 "ERROR_MEDIA_GET_BITMAP": 获取bitmap异常，通常发生在通过uri查找不到对应照片的情况
 "ERROR_COMPRESS": 压缩图片异常，通常发生在某些配置较低的机型内存不足的情况
 "ERROR_PICK_NOT_FOUND": 启动系统相册失败
-```
-
-具体示例可参照demo
-
-***
-
-### 1.2.0版本更新内容
-
-针对图片选取增加了动态获取权限的功能（依赖于动态权限框架 [yanzhenjie/AndPermission](https://github.com/yanzhenjie/AndPermission)），即在**Android 6.0**以上调用图片选取功能时不需要再另外编写动态权限相关的代码了
-
-此外，在向用户申请权限时，针对用户有可能执行**不再询问并拒绝权限**的操作，**PhotoFactory**提供了相应的回调和跳转至**应用管理设置界面**的方法，示例如下：
-
-```java
-//在Application中或第一次使用PhotoFactory时调用此方法即可
-//在回调方法onAction中你可以显示一个对话框让用户选择是否跳转至应用管理界面
-PhotoFactory.setPermissionAlwaysDeniedAction(new PermissionAlwaysDenied.Action() {
-    @Override
-    public void onAction(Context context, List<String> permissions, final PermissionAlwaysDenied.Executor executor) {
-        //参数 permissions 为用户拒绝的权限列表
-        //调用 PhotoFactory.transformPermissionText 可以将权限名称翻译成中文文本
-        //调用 executor.toSetting() 可以跳转至应用管理界面
-    }
-});
 ```
 
 具体示例可参照demo
