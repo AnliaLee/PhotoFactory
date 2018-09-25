@@ -24,9 +24,13 @@ import static com.anlia.photofactory.factory.PhotoFactory.TYPE_PHOTO_FROM_GALLER
 public class FactoryHelperActivity extends Activity {
     private static ActivityResultListener mActivityResultListener;
 
-    private static final String KEY_JOB = "KEY_JOB";
-    private static final String KEY_PARAM = "KEY_PARAM";
-    private static final String KEY_REQUEST = "KEY_REQUEST";
+    private Intent mRequestIntent;// FactoryHelperActivity 请求系统API的Intent
+    private Intent mGetIntent;// Worker 与 FactoryHelperActivity 之间的中转Intent
+    private Map<String, Object> mGetIntentParamMap;//存放GetIntent参数的集合
+
+    private static final String KEY_JOB = "KEY_JOB";//GetIntent的任务类型
+    private static final String KEY_PARAM = "KEY_PARAM";//GetIntent的携带参数
+    private static final String KEY_REQUEST = "KEY_REQUEST";//GetIntent的请求码
     private static final int JOB_SELECT_PHOTO_FROM_GALLERY = 1;
     private static final int JOB_SELECT_PHOTO_FROM_CAMERA = 2;
     private static final int JOB_CROP_PHOTO = 3;
@@ -64,31 +68,31 @@ public class FactoryHelperActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = getIntent();
+        mRequestIntent = new Intent();
+        mGetIntent = getIntent();
+        mGetIntentParamMap = (HashMap) mGetIntent.getSerializableExtra(KEY_PARAM);
 
-        Intent requestIntent = new Intent();
-        Map<String, Object> map = (HashMap) intent.getSerializableExtra(KEY_PARAM);
-        if (map != null) {
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
+        if (mGetIntentParamMap != null) {
+            for (Map.Entry<String, Object> entry : mGetIntentParamMap.entrySet()) {
                 if (entry.getKey().equals("DataAndType")) {
                     continue;
                 }
 
                 if (entry.getValue() instanceof Uri) {
-                    requestIntent.putExtra(entry.getKey(), (Uri) entry.getValue());
+                    mRequestIntent.putExtra(entry.getKey(), (Uri) entry.getValue());
                 } else if (entry.getValue() instanceof Integer) {
-                    requestIntent.putExtra(entry.getKey(), (int) entry.getValue());
+                    mRequestIntent.putExtra(entry.getKey(), (int) entry.getValue());
                 }
             }
         }
 
-        switch (intent.getIntExtra(KEY_JOB, 0)) {
+        switch (mGetIntent.getIntExtra(KEY_JOB, 0)) {
             case JOB_SELECT_PHOTO_FROM_GALLERY:
                 try {
-                    requestIntent.setType("image/*");// 设置文件类型
-                    requestIntent.setAction(Intent.ACTION_PICK);
-                    requestIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    startActivityForResult(requestIntent, TYPE_PHOTO_FROM_GALLERY);
+                    mRequestIntent.setType("image/*");// 设置文件类型
+                    mRequestIntent.setAction(Intent.ACTION_PICK);
+                    mRequestIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(mRequestIntent, TYPE_PHOTO_FROM_GALLERY);
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (mActivityResultListener != null) {
@@ -99,8 +103,8 @@ public class FactoryHelperActivity extends Activity {
                 break;
             case JOB_SELECT_PHOTO_FROM_CAMERA:
                 try {
-                    requestIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(requestIntent, intent.getIntExtra(KEY_REQUEST, -99));
+                    mRequestIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(mRequestIntent, mGetIntent.getIntExtra(KEY_REQUEST, -99));
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (mActivityResultListener != null) {
@@ -110,10 +114,10 @@ public class FactoryHelperActivity extends Activity {
                 }
                 break;
             case JOB_CROP_PHOTO:
-                requestIntent.setAction("com.android.camera.action.CROP");
-                requestIntent.putExtra("crop", "true");
-                requestIntent.setDataAndType((Uri) map.get("DataAndType"), "image/*");
-                startActivityForResult(requestIntent, TYPE_PHOTO_CROP);
+                mRequestIntent.setAction("com.android.camera.action.CROP");
+                mRequestIntent.putExtra("crop", "true");
+                mRequestIntent.setDataAndType((Uri) mGetIntentParamMap.get("DataAndType"), "image/*");
+                startActivityForResult(mRequestIntent, TYPE_PHOTO_CROP);
                 break;
         }
     }

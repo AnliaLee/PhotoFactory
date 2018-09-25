@@ -7,7 +7,6 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 
 import com.anlia.photofactory.FactoryHelperActivity;
-import com.anlia.photofactory.base.BaseWorker;
 import com.anlia.photofactory.factory.PhotoFactory;
 import com.anlia.photofactory.result.ResultData;
 import com.anlia.photofactory.utils.UriUtils;
@@ -42,7 +41,7 @@ public class CropWorker extends BaseWorker {
     }
 
     @Override
-    public void StartForResult(@NonNull final PhotoFactory.OnResultListener listener) {
+    protected void doInGranted(final PhotoFactory.OnResultListener listener) {
         if (cropData == null) {
             listener.onError(ERROR_CROP_DATA);
             return;

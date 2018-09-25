@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 
 import com.anlia.photofactory.FactoryHelperActivity;
-import com.anlia.photofactory.base.BaseWorker;
 import com.anlia.photofactory.factory.PhotoFactory;
 import com.anlia.photofactory.result.ResultData;
 
@@ -21,7 +20,7 @@ public class GalleryWorker extends BaseWorker {
     }
 
     @Override
-    public void StartForResult(@NonNull final PhotoFactory.OnResultListener listener) {
+    protected void doInGranted(final PhotoFactory.OnResultListener listener) {
         FactoryHelperActivity.selectPhotoFromGallery(mContext, new FactoryHelperActivity.ActivityResultListener() {
             @Override
             public void onResultCallback(int requestCode, int resultCode, Intent data, String error) {

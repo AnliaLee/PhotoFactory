@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-	compile 'com.github.AnliaLee:PhotoFactory:1.1.9'
+	compile 'com.github.AnliaLee:PhotoFactory:1.2.0'
 }
 
 ```
@@ -27,6 +27,7 @@ dependencies {
 <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.CAMERA"/>
 ```
 ***
 ### 如何使用
@@ -108,8 +109,30 @@ Uri uri = resultData
 "ERROR_PICK_NOT_FOUND": 启动系统相册失败
 ```
 
+具体示例可参照demo
 
-具体使用流程可参照demo
+***
+
+### 1.2.0版本更新内容
+
+针对图片选取增加了动态获取权限的功能（依赖于动态权限框架 [yanzhenjie/AndPermission](https://github.com/yanzhenjie/AndPermission)），即在**Android 6.0**以上调用图片选取功能时不需要再另外编写动态权限相关的代码了
+
+此外，在向用户申请权限时，针对用户有可能执行**不再询问并拒绝权限**的操作，**PhotoFactory**提供了相应的回调和跳转至**应用管理设置界面**的方法，示例如下：
+
+```java
+//在Application中或第一次使用PhotoFactory时调用此方法即可
+//在回调方法onAction中你可以显示一个对话框让用户选择是否跳转至应用管理界面
+PhotoFactory.setPermissionAlwaysDeniedAction(new PermissionAlwaysDenied.Action() {
+    @Override
+    public void onAction(Context context, List<String> permissions, final PermissionAlwaysDenied.Executor executor) {
+        //参数 permissions 为用户拒绝的权限列表
+        //调用 PhotoFactory.transformPermissionText 可以将权限名称翻译成中文文本
+        //调用 executor.toSetting() 可以跳转至应用管理界面
+    }
+});
+```
+
+具体示例可参照demo
 
 ***
 #### 搜索图片

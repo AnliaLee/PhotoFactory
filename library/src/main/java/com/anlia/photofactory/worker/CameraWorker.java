@@ -4,13 +4,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.widget.Toast;
 
 import com.anlia.photofactory.FactoryHelperActivity;
-import com.anlia.photofactory.base.BaseWorker;
 import com.anlia.photofactory.factory.PhotoFactory;
+import com.anlia.photofactory.permission.PermissionAlwaysDenied;
 import com.anlia.photofactory.result.ResultData;
+import com.yanzhenjie.permission.Action;
+import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.Permission;
 
 import java.io.File;
+import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 import static com.anlia.photofactory.factory.PhotoFactory.CODE_SUCCESS;
@@ -36,7 +41,12 @@ public class CameraWorker extends BaseWorker {
     }
 
     @Override
-    public void StartForResult(@NonNull final PhotoFactory.OnResultListener listener) {
+    protected void initPermissions() {
+        requestPermissions = new String[]{Permission.CAMERA, Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE};
+    }
+
+    @Override
+    protected void doInGranted(@NonNull final PhotoFactory.OnResultListener listener) {
         FactoryHelperActivity.selectPhotoFromCamera(mContext, mMap, mRequestCode, new FactoryHelperActivity.ActivityResultListener() {
             @Override
             public void onResultCallback(int requestCode, int resultCode, Intent data, String error) {

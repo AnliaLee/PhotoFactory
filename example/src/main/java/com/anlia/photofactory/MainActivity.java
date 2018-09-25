@@ -1,15 +1,14 @@
 package com.anlia.photofactory;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -17,12 +16,14 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.anlia.photofactory.factory.PhotoFactory;
+import com.anlia.photofactory.permission.PermissionAlwaysDenied;
 import com.anlia.photofactory.result.ResultData;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
 
 import static com.anlia.photofactory.factory.PhotoFactory.ERROR_CROP_DATA;
 
@@ -47,128 +48,81 @@ public class MainActivity extends AppCompatActivity {
 
         picName = Calendar.getInstance().getTimeInMillis() + ".png";
 
-        photoFactory = new PhotoFactory(this, Environment.getExternalStorageDirectory() + "/" + "DCIM", picName);
+        PhotoFactory.setPermissionAlwaysDeniedAction(new PermissionAlwaysDenied.Action() {
+            @Override
+            public void onAction(Context context, List<String> permissions, final PermissionAlwaysDenied.Executor executor) {
+                List<String> permissionNames = PhotoFactory.transformPermissionText(context, permissions);
+                String permissionText = TextUtils.join("权限\n", permissionNames);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("权限说明");
+                builder.setMessage("您禁止了以下权限的动态申请：\n\n" + permissionText + "权限\n\n是否去应用权限管理中手动授权呢？");
+                builder.setPositiveButton("去授权", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        executor.toSetting();
+                    }
+                });
+                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+                builder.show();
+            }
+        });
+
         btnGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    //申请写入权限
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    }, 100);
-                } else {
-                    photoFactory.FromGallery()
-                            .StartForResult(new PhotoFactory.OnResultListener() {
-                                @Override
-                                public void onCancel() {
-                                    Log.e(TAG, "取消从相册选择");
-                                }
+                photoFactory = new PhotoFactory(MainActivity.this, Environment.getExternalStorageDirectory() + "/" + "DCIM", picName);
+                photoFactory.FromGallery()
+                        .StartForResult(new PhotoFactory.OnResultListener() {
+                            @Override
+                            public void onCancel() {
+                                Log.e(TAG, "取消从相册选择");
+                            }
 
-                                @Override
-                                public void onSuccess(ResultData resultData) {
-                                    dealSelectPhoto(resultData);
+                            @Override
+                            public void onSuccess(ResultData resultData) {
+                                dealSelectPhoto(resultData);
 //                            Uri uri = resultData.GetUri();
 //                            imgPhoto.setImageURI(uri);
-                                }
+                            }
 
-                                @Override
-                                public void onError(String error) {
+                            @Override
+                            public void onError(String error) {
 
-                                }
-                            });
-                }
+                            }
+                        });
             }
         });
 
         btnCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    //申请写入权限
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    }, 101);
-                } else {
-                    photoFactory.FromCamera()
-                            .AddOutPutExtra()
-                            .StartForResult(new PhotoFactory.OnResultListener() {
-                                @Override
-                                public void onCancel() {
-                                    Log.e(TAG, "取消从相册选择");
-                                }
+                photoFactory = new PhotoFactory(MainActivity.this, Environment.getExternalStorageDirectory() + "/" + "DCIM", picName);
+                photoFactory.FromCamera()
+                        .AddOutPutExtra()
+                        .StartForResult(new PhotoFactory.OnResultListener() {
+                            @Override
+                            public void onCancel() {
+                                Log.e(TAG, "取消从相册选择");
+                            }
 
-                                @Override
-                                public void onSuccess(ResultData resultData) {
-                                    dealSelectPhoto(resultData);
-                                }
+                            @Override
+                            public void onSuccess(ResultData resultData) {
+                                dealSelectPhoto(resultData);
+                            }
 
-                                @Override
-                                public void onError(String error) {
+                            @Override
+                            public void onError(String error) {
 
-                                }
-                            });
-                }
+                            }
+                        });
             }
         });
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case 100:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    photoFactory.FromGallery()
-                            .StartForResult(new PhotoFactory.OnResultListener() {
-                                @Override
-                                public void onCancel() {
-                                    Log.e(TAG,"取消从相册选择");
-                                }
-
-                                @Override
-                                public void onSuccess(ResultData resultData) {
-                                    dealSelectPhoto(resultData);
-//                                    Uri uri = resultData.GetUri();
-//                                    imgPhoto.setImageURI(uri);
-                                }
-
-                                @Override
-                                public void onError(String error) {
-
-                                }
-                            });
-                } else {// 没有获取到权限，做特殊处理
-                    Toast.makeText(this, "请授予权限！", Toast.LENGTH_SHORT).show();
-                }
-                break;
-
-            case 101:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    photoFactory.FromCamera()
-                            .AddOutPutExtra()
-                            .StartForResult(new PhotoFactory.OnResultListener() {
-                                @Override
-                                public void onCancel() {
-                                    Log.e(TAG, "取消从相册选择");
-                                }
-
-                                @Override
-                                public void onSuccess(ResultData resultData) {
-                                    dealSelectPhoto(resultData);
-                                }
-
-                                @Override
-                                public void onError(String error) {
-
-                                }
-                            });
-                } else {// 没有获取到权限，做特殊处理
-                    Toast.makeText(this, "请授予权限！", Toast.LENGTH_SHORT).show();
-                }
-                break;
-            default:
-                break;
-        }
     }
 
     private void dealSelectPhoto(ResultData resultData) {
@@ -197,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(String error) {
-                        switch (error){
+                        switch (error) {
                             case ERROR_CROP_DATA:
                                 Toast.makeText(MainActivity.this, "data为空", Toast.LENGTH_SHORT).show();
                                 break;

@@ -4,16 +4,20 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.app.LoaderManager;
+import android.widget.Toast;
 
+import com.anlia.photofactory.permission.PermissionAlwaysDenied;
 import com.anlia.photofactory.result.ResultData;
 import com.anlia.photofactory.utils.SystemUtils;
 import com.anlia.photofactory.worker.CameraWorker;
 import com.anlia.photofactory.worker.CropWorker;
 import com.anlia.photofactory.worker.GalleryWorker;
 import com.anlia.photofactory.worker.SearchWorker;
+import com.yanzhenjie.permission.Permission;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,7 +57,7 @@ public class PhotoFactory {
         mPhotoName = photoName;
 
         if(!SystemUtils.HasSdcard()){
-            throw new NullPointerException("SD卡读取失败");
+            Toast.makeText(mContext, "SD卡读取失败", Toast.LENGTH_SHORT).show();
         }else {
             File dir= new File(mPhotoDir);
             if (!dir.exists()) {
@@ -102,6 +106,24 @@ public class PhotoFactory {
         map.put("selections",new String[]{""});
         map.put("projection",projection);
         return new SearchWorker(map);
+    }
+
+    /**
+     * 设置用户永久拒绝权限后的动作
+     * @param action
+     */
+    public static void setPermissionAlwaysDeniedAction(PermissionAlwaysDenied.Action action) {
+        PermissionAlwaysDenied.getInstance().setAction(action);
+    }
+
+    /**
+     * 转译权限文本
+     * @param context
+     * @param permissions
+     * @return
+     */
+    public static List<String> transformPermissionText(Context context, List<String> permissions) {
+        return Permission.transformText(context, permissions);
     }
 
     public interface OnResultListener {
