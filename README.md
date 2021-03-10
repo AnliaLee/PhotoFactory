@@ -107,8 +107,8 @@ resultData.GetUri()
 当然，你还可以对图片进行**压缩**处理
 
 ```java
-resultData.addScaleCompress(w,h).GetUri()//按目标宽高缩放
-resultData.addQualityCompress(targetSize).GetUri()//质量压缩，targetSize为目标大小（低端机不建议使用，暂未优化内存）
+resultData.addScaleCompress(w,h).GetUri()// 按目标宽高缩放
+resultData.addQualityCompress(targetSize).GetUri()// 质量压缩，targetSize为目标大小（低端机不建议使用，暂未优化内存）
 ```
 
 以及抓取处理结果时的**异常**
